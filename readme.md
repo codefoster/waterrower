@@ -19,8 +19,7 @@ import { Subject } from 'rxjs/Rx';
 import WaterRower from 'waterrower';
 let waterrower = new WaterRower();
 
-// the module 
-//respond to the waterrower sending data
+// respond to the waterrower sending data
 waterrower.data$.subscribe(() => {
     // access data using waterrower.data;
 });
