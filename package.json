@@ -1,15 +1,19 @@
 {
   "name": "waterrower",
   "version": "0.1.0",
-  "description": "A module for controlling and reading data from your Waterrower",
+  "description": "Talk to your WaterRower!",
   "main": "index.js",
   "scripts": {
     "tsc": "tsc",
     "tsc:w": "tsc -w",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "npm run tsc:w"
+    "start": "tsc -w"
   },
-  "keywords": [],
+  "keywords": ["exercise","row","rowing","fitness","water rower","health"],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/codefoster/waterrower.git"
+  },
   "author": "Jeremy Foster <jeremy.foster@live.com>",
   "license": "apache-2.0",
   "dependencies": {

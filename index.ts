@@ -58,7 +58,10 @@ export default class WaterRower {
         this.port.on('closed', () => console.log('connection closed'));
         this.port.on('error', err => console.log('Please plug in your WaterRower and start again...'));
 
-        //this is the declarative list of things to do when the waterrower sends us a message
+        // this is the declarative list of things to do when the
+        // waterrower sends us a data message
+        // it uses regular expressions to respond to certain message patterns
+        // m is the matches array and m[1] is the value of the primary regex match
         this.actions = [
             {
                 name: 'distance (low byte)',
@@ -148,7 +151,7 @@ export default class WaterRower {
     }
 
     /// set up new workout session on the WR with set distance
-    startRace(options) {
+    startWorkout(options:StartWorkoutOptions) {
         this.send('WSI1' + ayb.decToHex(options.distance));
     }
 
@@ -180,4 +183,8 @@ export interface WaterRowerOptions {
     portName:string;
     baudRate:number;
     refreshRate:number;
+}
+
+export interface StartWorkoutOptions {
+    distance:number;
 }
