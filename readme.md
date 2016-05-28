@@ -8,15 +8,22 @@ This project was initially created to support the [Waterbug](http://github.com/c
 
 ## Installation
 
+In your terminal...
 ```
 npm install waterrower --save
+
+```
+In your project code...
+```
+import WaterRower from 'waterrower';
+let waterrower = new WaterRower();
 ```
 
 ## Example Usage
 
 ```
-import { Subject } from 'rxjs/Rx';
 import WaterRower from 'waterrower';
+import { Subject } from 'rxjs/Rx';
 let waterrower = new WaterRower();
 
 // respond to the waterrower sending data
@@ -53,12 +60,15 @@ Asks the WaterRower to send clock values. These happen in a completely separate 
 ###`setDisplayUnits()`
 Currently hard coded to set the WaterRower to use meters.
 ###WaterRowerOptions
-These are the options that you can pass to the WaterRower constructor. The values passed in here will override what is in WaterRower's `config.ts` file. In the future, the `config.ts` file will go away and this options string will be the only way to configure the module.
+These are the options that you can pass to the WaterRower constructor. `portName` is required unless `simulationMode:true`.
+
+`baudRate` and `refreshRate` have defaults and are optional.
 ```
 var waterrower = new WaterRower({
   portName:'/dev/ttyACM0',
   baudRate:19200,
-  refreshRate:200
+  refreshRate:200,
+  simulationMode:false
 }
 ```
 ###StartWorkoutOptions

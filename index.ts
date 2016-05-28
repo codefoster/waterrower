@@ -112,17 +112,18 @@ export default class WaterRower {
 
     /// change the display to meters
     private setDisplayUnits() {
-        this.send('DDME'); 
+        this.send('DDME');
     }
 
 }
 
 export interface WaterRowerOptions {
-    portName:string;
-    baudRate:number;
-    refreshRate:number;
+    portName: string;
+    baudRate?: number;
+    refreshRate?: number;
+    simulationMode?: boolean;
 }
 
 export interface StartWorkoutOptions {
-    distance:number;
+    distance: number;
 }
