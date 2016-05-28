@@ -75,8 +75,6 @@ See the [issues](http://github.com/codefoster/waterrower/issues) on GitHub for a
 
 Here are a few of the first ones that need to be implemented...
  
-- The API Reference section above needs to be completed
-- The port name is currently hard coded in the config file
 - The clock functionality currently comes back with a total number of seconds, but it would be better to have it come back with a formatted hh:mm:ss string.
 
 
