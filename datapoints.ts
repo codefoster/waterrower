@@ -1,0 +1,20 @@
+//TODO: so far I'm ignoring the values that have a decimal value, but that should be added
+export default [
+    { name: 'distance', address: '055', length: 'D', value: null },
+    { name: 'display_distance', address: '057', length: 'D', value: null },
+    { name: 'clock_down', address: '05B', length: 'D', value: null },
+    { name: 'total_distance', address: '081', length: 'D', value: null },
+    { name: 'kcal_watts', address: '088', length: 'D', value: null },
+    { name: 'total_kcal', address: '08A', length: 'D', value: null },
+    { name: 'tank_volume', address: '0A9', length: 'S', value: null },
+    { name: 'stroke_count', address: '140', length: 'D', value: null },
+    { name: 'stroke_average', address: '142', length: 'S', value: null },
+    { name: 'stroke_pull', address: '143', length: 'S', value: null },
+    { name: 'speed_total', address: '148', length: 'D', value: null },
+    { name: 'speed_average', address: '14A', length: 'D', value: null },
+    { name: 'display_seconds', address: '1E1', length: 'S', value: null },
+    { name: 'workout_time', address: '1E8', length: 'D', value: null },
+    { name: 'workout_speed', address: '1EA', length: 'D', value: null },
+    { name: 'workout_stroke', address: '1EC', length: 'D', value: null },
+    { name: 'workout_limit', address: '1EE', length: 'D', value: null },
+];
