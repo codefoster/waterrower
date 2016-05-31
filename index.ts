@@ -8,10 +8,8 @@ export class WaterRower {
     port: serialport.SerialPort;
     private reads$: Subject<string> = new Subject<string>();
     private datapoints$: Observable<DataPoint>;
-    private dataPointDelay:number;
 
     constructor(options?: WaterRowerOptions) {
-        this.dataPointDelay = options.dataPointDelay || 200;
         if (options.simulationMode) {
             //TODO: implement simulation mode
         }
@@ -30,16 +28,8 @@ export class WaterRower {
                 console.log(`A connection to the WaterRower has been established on ${options.portName}`);
 
                 this.initialize(); //start things off
-                this.setDisplayUnits(Units.Meters); //change the display to meters
-                this.reset(); //reset the waterrower 
-
-                setInterval(function () {
-                    this.requestDistance();
-                    this.requestSpeed();
-                    this.requestClock();
-                }, options.refreshRate || 200);
+                setInterval(this.requestAll, options.refreshRate || 200);
             });
-
             this.port.on('data', d => this.reads$.next(d));
             this.port.on('closed', () => console.log('connection closed'));
             this.port.on('error', err => console.log('Please plug in your WaterRower and start again...'));
@@ -73,46 +63,56 @@ export class WaterRower {
     }
 
     /// send a serial message
-    private send(value) {
+    private send(value):void {
         this.port.write(value + '\r\n');
     }
 
     /// initialize the connection    
-    initialize() {
+    initialize():void {
         this.send('USB');
     }
 
     /// reset console
-    reset() {
+    reset():void {
         this.send('RESET'); //reset the waterrower 
     }
 
     /// set up new workout session on the WR with set distance
-    defineDistanceWorkout(distance: number, units: Units) {
+    defineDistanceWorkout(distance: number, units: Units):void {
         this.send(`WSI${units}${ayb.decToHex(distance)}`);
     }
 
     /// set up new workout session on the WR with set duration
-    defineDurationWorkout(seconds: number) {
+    defineDurationWorkout(seconds: number):void {
         this.send('WSU${ayb.decToHex(seconds)}');
     }
 
-    requestAll() {
-        datapoints.forEach(d => this.requestDataPoint(d));
+    /// requestAll calls requestDataPoint on all of the datapoints
+    requestAll():void {
+        datapoints.forEach(d => this.requestDataPoint(d.name));
     }
 
-    requestDataPoint(name:string) {
+    /// Issues a request for a specific data point.
+    /// There is no return value. Data point values can be read very
+    /// shortly after the request is made 
+    requestDataPoint(name:string):void {
         let dataPoint = _.find(datapoints, d => d.name == name);
         this.send(`IR${dataPoint.length}${dataPoint.address}`)
     }
+
+    /// find the value of a single datapoint    
+    readDataPoint(name:string):any {
+        return _.find(datapoints,d => d.name == name).value;
+    }
     
-    observeDatapoint$(name:string) {
-        this.requestDataPoint(name);
-        setTimeout(() => this.datapoints$.filter(d => d.name == name), this.dataPointDelay);
+    readAllData():Object{
+        /// test, but I think this sets an initial value of {} and then iterates the
+        /// datapoints adding the names/values as properties
+        return datapoints.reduce((p, c) => p[c.name] = c.value,{})
     }
 
     /// change the display to meters, miles, kilometers, or strokes
-    displaySetDistance(units: Units) {
+    displaySetDistance(units: Units):void {
         let value = 'DD';
         switch (units) {
             case Units.Meters: value += 'ME'; break;
@@ -125,7 +125,7 @@ export class WaterRower {
     }
 
     /// change the intensity display
-    displaySetIntensity(option: IntensityDisplayOptions) {
+    displaySetIntensity(option: IntensityDisplayOptions):void {
         let value = 'DD';
         switch (option) {
             case IntensityDisplayOptions.MetersPerSecond: value += 'MS'; break;
@@ -139,7 +139,7 @@ export class WaterRower {
     }
 
     /// change the average intensity display
-    displaySetAverageIntensity(option: AverageIntensityDisplayOptions) {
+    displaySetAverageIntensity(option: AverageIntensityDisplayOptions):void {
         let value = 'DD';
         switch (option) {
             case AverageIntensityDisplayOptions.AverageMetersPerSecond: value += 'MS'; break;
