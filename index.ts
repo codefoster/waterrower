@@ -34,14 +34,14 @@ export default class WaterRower {
             });
 
             // setup port events
-            this.port.on('open', function () {
+        this.port.on('open', () => {
                 console.log(`A connection to the WaterRower has been established on ${portName}`);
 
                 this.initialize(); //start things off
                 this.setDisplayUnits(); //change the display to meters
                 this.reset(); //reset the waterrower 
 
-                setInterval(function () {
+            setInterval(() => {
                     this.requestDistance();
                     this.requestSpeed();
                     this.requestClock();
