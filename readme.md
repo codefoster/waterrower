@@ -62,7 +62,7 @@ Currently hard coded to set the WaterRower to use meters.
 ###WaterRowerOptions
 These are the options that you can pass to the WaterRower constructor. `portName` is required unless `simulationMode:true`.
 
-`baudRate` and `refreshRate` have defaults and are optional.
+`baudRate`, `refreshRate`, and `simulationMode` have defaults and are optional.
 ```
 var waterrower = new WaterRower({
   portName:'/dev/ttyACM0',
@@ -71,6 +71,8 @@ var waterrower = new WaterRower({
   simulationMode:false
 }
 ```
+BTW, I have plans to program the module to discover the port automatically, but for now, you have to pass it in as an option when you create the WaterRower object.
+
 ###StartWorkoutOptions
 These are the options you can send to the `startWorkout()` method. Currently only distance workouts are supported.
 ```
