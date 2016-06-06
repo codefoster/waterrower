@@ -1,0 +1,6 @@
+*.ts
+
+/.vscode
+/tsconfig.json
+/typings
+/typings.json
