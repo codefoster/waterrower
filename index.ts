@@ -56,9 +56,9 @@ export default class WaterRower {
 
         //when a message is received, apply the appropriate action
         this.data$.subscribe(d => {
-            actions.forEach(function (a) {
+            actions.forEach(a => {
                 var matches = a.pattern.exec(d);
-                if (matches && a.action) a.action(matches);
+                if (matches && a.action) a.action.call(this, matches);
             });
         })
     }

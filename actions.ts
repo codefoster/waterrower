@@ -7,7 +7,7 @@ export default [
     {
         name: 'distance (low byte)',
         pattern: /IDS055([\dA-F]+)/,
-        action: m => {
+        action: function (m) {
             if (this.distance_l != m[1]) {
                 this.distance_l = m[1];
                 this.data$.next(null);
@@ -17,12 +17,14 @@ export default [
     {
         name: 'distance (high byte)',
         pattern: /IDS056([\dA-F]+)/,
-        action: m => this.distance_h = m[1]
+        action: function(m) {
+            this.distance_h = m[1]
+        }
     },
     {
         name: 'speed (low byte)',
         pattern: /IDS14A([\dA-F]+)/,
-        action: m => {
+        action: function (m) {
             if (this.speed_l != m[1])
                 this.speed_l = m[1];
         }
@@ -30,7 +32,7 @@ export default [
     {
         name: 'speed (high byte)',
         pattern: /IDS14B([\dA-F]+)/,
-        action: m => {
+        action: function (m) {
             if (this.speed_h != m[1]) {
                 this.speed_h = m[1];
                 this.data$.next(null);
@@ -40,7 +42,7 @@ export default [
     {
         name: 'stroke rate',
         pattern: /IDS142([\dA-F]+)/,
-        action: m => {
+        action: function (m) {
             if (this.strokeRate != m[1]) {
                 this.strokeRate = m[1];
                 this.data$.next(null);
@@ -50,7 +52,7 @@ export default [
     {
         name: 'clock (seconds)',
         pattern: /IDS1E1([\dA-F]+)/,
-        action: m => {
+        action: function (m) {
             if (this.clock != m[1]) {
                 this.clock = m[1];
                 this.data$.next(null);
