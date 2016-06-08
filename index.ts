@@ -34,7 +34,7 @@ export default class WaterRower {
             });
 
             // setup port events
-        this.port.on('open', () => {
+            this.port.on('open', () => {
                 console.log(`A connection to the WaterRower has been established on ${portName}`);
 
                 this.initialize(); //start things off
@@ -63,7 +63,7 @@ export default class WaterRower {
         })
     }
 
-    /// initialize the connection    
+    /// initialize the connection
     initialize() {
         this.send('USB');
     }
@@ -114,7 +114,6 @@ export default class WaterRower {
     private setDisplayUnits() {
         this.send('DDME');
     }
-
 }
 
 export interface WaterRowerOptions {
