@@ -43,6 +43,7 @@ export default class WaterRower {
 
             setInterval(() => {
                     this.requestDistance();
+                    this.requestStroke();
                     this.requestSpeed();
                     this.requestClock();
                 }, refreshRate);
@@ -75,9 +76,10 @@ export default class WaterRower {
 
     /// get current data
     get data() {
+        const strokeDuration = ayb.hexToDec(this.strokeRate.toString()) * 0.025;
         return {
             distance: ayb.hexToDec(this.distance_h + '' + this.distance_l),
-            strokeRate: ayb.hexToDec(this.strokeRate.toString()),
+            strokeRate: strokeDuration ? 60 / strokeDuration : 0,
             speed: ayb.hexToDec(this.speed_h + '' + this.speed_l),
             clock: ayb.hexToDec(this.clock.toString()),
         }
@@ -97,6 +99,11 @@ export default class WaterRower {
     requestDistance() {
         this.send('IRS055'); //low byte of distance (m)
         this.send('IRS056'); //hi byte of distance (m)
+    }
+
+    /// request stroke data
+    requestStroke() {
+        this.send('IRS142'); //average stroke duration
     }
 
     /// request speed data
