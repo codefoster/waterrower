@@ -85,12 +85,9 @@ waterrower.startWorkout({
 
 See the [issues](http://github.com/codefoster/waterrower/issues) on GitHub for a complete list of issues, and feel free to submit some yourself either for bugs or feature requests.
 
-Here are a few of the first ones that need to be implemented...
- 
-- The clock functionality currently comes back with a total number of seconds, but it would be better to have it come back with a formatted hh:mm:ss string.
-
-
 ## License
 
 Apache 2.0
 
+## Contributors
+Big thanks to [redoPop](https://github.com/redoPop) for the recent contributions to the waterrower project!
