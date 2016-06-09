@@ -79,7 +79,7 @@ export default class WaterRower {
             distance: ayb.hexToDec(this.distance_h + '' + this.distance_l),
             strokeRate: ayb.hexToDec(this.strokeRate.toString()),
             speed: ayb.hexToDec(this.speed_h + '' + this.speed_l),
-            clock: ayb.hexToDec(this.clock.toString()),
+            clock: this.clock,
         }
     }
 
@@ -107,7 +107,7 @@ export default class WaterRower {
 
     /// request clock data
     requestClock() {
-        this.send('IRS1E1'); //clock seconds
+        this.send('IRT1E1'); // clock seconds, minutes, hours
     }
 
     /// change the display to meters
