@@ -50,11 +50,16 @@ export default [
         }
     },
     {
-        name: 'clock (seconds)',
-        pattern: /IDS1E1([\dA-F]+)/,
+        name: 'clock',
+        pattern: /IDT1E1(\d{02})(\d{02})(\d{02})/,
         action: function (m) {
-            if (this.clock != m[1]) {
-                this.clock = m[1];
+            const clock = (
+                parseInt(m[1], 10) * 3600 +  // hours
+                parseInt(m[2], 10) * 60 +    // minutes
+                parseInt(m[3], 10)           // seconds
+            );
+            if (this.clock != clock) {
+                this.clock = clock;
                 this.data$.next(null);
             }
         }
