@@ -5,11 +5,16 @@ import * as _ from 'lodash';
 import datapoints from './datapoints';
 
 export class WaterRower {
-    port: serialport.SerialPort;
+    private REFRESH_RATE = 200;
+    private DEFAULT_BAUD_RATE = 19200;
+    private port: serialport.SerialPort;
     private reads$: Subject<string> = new Subject<string>();
+
+    // datapoints$ is public and is a subset of the reads$ stream - only the reads that are a report of a memory location's value 
     datapoints$: Observable<DataPoint>;
 
-    constructor(options?: WaterRowerOptions) {
+    constructor(options: WaterRowerOptions) {
+        if(!options) throw "No options were provided to the WaterRower constructor";
         if (options.simulationMode) {
             //TODO: implement simulation mode
         }
@@ -18,17 +23,16 @@ export class WaterRower {
 
             // setup the serial port
             this.port = new serialport.SerialPort(options.portName, {
-                baudrate: options.baudRate || 19200,
+                baudrate: options.baudRate || this.DEFAULT_BAUD_RATE,
                 disconnectedCallback: function () { console.log('disconnected'); },
                 parser: serialport.parsers.readline("\n")
             });
 
             // setup port events
-            this.port.on('open', function () {
+            this.port.on('open', () => {
                 console.log(`A connection to the WaterRower has been established on ${options.portName}`);
-
                 this.initialize(); //start things off
-                setInterval(this.requestAll, options.refreshRate || 200);
+                if (options.refreshRate !== 0) setInterval(() => this.requestAll(), options.refreshRate || this.REFRESH_RATE); //have to put requestAll in a fat arrow function for correct function binding
             });
             this.port.on('data', d => this.reads$.next(d));
             this.port.on('closed', () => console.log('connection closed'));
@@ -78,18 +82,13 @@ export class WaterRower {
     }
 
     /// set up new workout session on the WR with set distance
-    defineDistanceWorkout(distance: number, units: Units): void {
+    defineDistanceWorkout(distance: number, units: Units = Units.Meters): void {
         this.send(`WSI${units}${ayb.decToHex(distance)}`);
     }
 
     /// set up new workout session on the WR with set duration
     defineDurationWorkout(seconds: number): void {
         this.send('WSU${ayb.decToHex(seconds)}');
-    }
-
-    /// requestAll calls requestDataPoint on all of the datapoints
-    requestAll(): void {
-        datapoints.forEach(d => this.requestDataPoint(d.name));
     }
 
     /// Issues a request for a specific data point.
@@ -100,12 +99,18 @@ export class WaterRower {
         this.send(`IR${dataPoint.length}${dataPoint.address}`)
     }
 
+    /// requestAll calls requestDataPoint on all of the datapoints
+    requestAll(): void {
+        datapoints.forEach(d => this.requestDataPoint(d.name));
+    }
+
     /// find the value of a single datapoint
     readDataPoint(name: string): any {
+        console.log('reading ' + name);
         return _.find(datapoints, d => d.name == name).value;
     }
 
-    readAllData(): Object {
+    readAll(): Object {
         /// test, but I think this sets an initial value of {} and then iterates the
         /// datapoints adding the names/values as properties
         return datapoints.reduce((p, c) => p[c.name] = c.value, {})
@@ -150,7 +155,6 @@ export class WaterRower {
         }
         this.send(value);
     }
-
 }
 
 export interface WaterRowerOptions {
@@ -158,7 +162,13 @@ export interface WaterRowerOptions {
     baudRate?: number;
     refreshRate?: number;
     simulationMode?: boolean;
-    dataPointDelay?: number;
+}
+
+export interface DataPoint {
+    name?: string,
+    address: string,
+    length: string,
+    value: any
 }
 
 export enum IntensityDisplayOptions {
@@ -182,11 +192,4 @@ export enum Units {
     Miles = 2,
     Kilometers = 3,
     Strokes = 4
-}
-
-export interface DataPoint {
-    name?: string,
-    address: string,
-    length: string,
-    value: any
 }
