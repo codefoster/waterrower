@@ -22,7 +22,7 @@
     "url": "git+https://github.com/codefoster/waterrower.git"
   },
   "author": "Jeremy Foster <jeremy.foster@live.com>",
-  "license": "apache-2.0",
+  "license": "Apache-2.0",
   "dependencies": {
     "all-your-base": "^0.3.0",
     "lodash": "^4.13.1",
