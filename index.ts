@@ -19,7 +19,18 @@ export class WaterRower extends events.EventEmitter {
     constructor(options: WaterRowerOptions = {}) {
         super();
         if (options.simulationMode) {
-            //TODO: implement simulation mode
+            //simulate Waterrower initialization
+            let h = _.find(types, t => t.type == 'hardwaretype');
+            this.reads$.next({ type: h.type, pattern: h.pattern, data: null });
+
+            //start sending datapoints
+            let d = _.find(types, t => t.type == 'datapoint');
+            //create temp state structure (since the rower actually uses its own state)
+            //create document with simulated rowing data, iterate it here and send the data
+            let dp;
+            Observable.interval(1000).subscribe(() => {
+                this.reads$.next({ type: d.type, pattern: d.pattern, data: dp });
+            })
         }
         else {
             if (!options.portName) {
