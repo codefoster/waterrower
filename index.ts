@@ -5,6 +5,7 @@ import * as _ from 'lodash';
 import * as events from 'events';
 import datapoints from './datapoints';
 import types from './types';
+import * as fs from 'fs';
 
 export class WaterRower extends events.EventEmitter {
     private REFRESH_RATE = 200;
@@ -64,6 +65,10 @@ export class WaterRower extends events.EventEmitter {
         this.datapoints$.subscribe(d => {
             this.emit('data', d);
             _.find(datapoints, d2 => d2.address == d.address).value = ayb.hexToDec(d.value);
+
+            //temporary for recording a rowing simulationMode
+            //TODO: remove this when done
+            fs.appendFile('rowdata', d);
         })
 
         // when the WR comes back with _WR_ then consider the WR initialized
