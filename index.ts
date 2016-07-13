@@ -11,6 +11,7 @@ export class WaterRower extends events.EventEmitter {
     private REFRESH_RATE = 200;
     private DEFAULT_BAUD_RATE = 19200;
     private port: serialport.SerialPort;
+    private recordFile: string = null;
 
     // reads$ is all serial messages from the WR
     // datapoints$ isonly the reads that are a report of a memory location's value 
@@ -26,20 +27,20 @@ export class WaterRower extends events.EventEmitter {
 
             //start sending datapoints
             let d = _.find(types, t => t.type == 'datapoint');
-            //create temp state structure (since the rower actually uses its own state)
-            //create document with simulated rowing data, iterate it here and send the data
-            let dp;
-            Observable.interval(1000).subscribe(() => {
-                this.reads$.next({ type: d.type, pattern: d.pattern, data: dp });
-            })
+            //iterate a sim file
+            this.reads$.next({ type: d.type, pattern: d.pattern, data: '' });
         }
         else {
             if (!options.portName) {
                 console.log('No port configured. Attempting to discover...');
-                this.discoverPort((name) => {
-                    console.log('Discovered a WaterRower on ' + name + '...');
-                    options.portName = name;
-                    this.setupSerialPort(options);
+                this.discoverPort(name => {
+                    if (name) {
+                        console.log('Discovered a WaterRower on ' + name + '...');
+                        options.portName = name;
+                        this.setupSerialPort(options);
+                    }
+                    else
+                        console.log('We didn\'t find any connected WaterRowers');
                 })
             }
             else {
@@ -47,6 +48,19 @@ export class WaterRower extends events.EventEmitter {
                 this.setupSerialPort(options);
             }
 
+        }
+        if (options.recordFile) {
+            this.recordFile = options.recordFile;
+            fs.writeFileSync(this.recordFile, '[');
+            let firstrow = true;
+            this.reads$.subscribe(
+                r => {
+                    if (firstrow) firstrow = false; else fs.appendFile(this.recordFile, ',');
+                    fs.appendFile(this.recordFile, JSON.stringify(r))
+                },
+                null,
+                () => fs.appendFile(this.recordFile, ']')
+            );
         }
 
         // this is the important stream for reading memory locations from the rower
@@ -65,22 +79,24 @@ export class WaterRower extends events.EventEmitter {
         this.datapoints$.subscribe(d => {
             this.emit('data', d);
             _.find(datapoints, d2 => d2.address == d.address).value = ayb.hexToDec(d.value);
-
-            //temporary for recording a rowing simulationMode
-            //TODO: remove this when done
-            fs.appendFile('rowdata', d);
         })
 
         // when the WR comes back with _WR_ then consider the WR initialized
         this.reads$.filter(d => d.type == 'hardwaretype').subscribe(d => {
             this.emit('initialized');
         });
+
+        process.on('SIGINT', () => {
+            this.close();
+        });
+
     }
 
     private discoverPort(callback) {
         serialport.list((err, ports) => {
             let p = _.find(ports, p => p.manufacturer === 'Microchip Technology, Inc.');
             if (p) callback(p.comName);
+            else callback();
         });
     }
 
@@ -102,8 +118,12 @@ export class WaterRower extends events.EventEmitter {
             let type = _.find(types, t => t.pattern.test(d));
             this.reads$.next({ type: (type ? type.type : 'other'), pattern: type.pattern, data: d })
         });
-        this.port.on('closed', () => console.log('connection closed'));
-        this.port.on('error', err => console.log('Please plug in your WaterRower and start again...'));
+        this.port.on('closed', () => this.close);
+        this.port.on('disconnect', () => this.close)
+        this.port.on('error', err => {
+            this.emit('error', err);
+            this.close();
+        });
     }
 
     /// send a serial message
@@ -115,6 +135,13 @@ export class WaterRower extends events.EventEmitter {
     private initialize(): void {
         console.log('Initializing port...');
         this.send('USB');
+    }
+
+    private close(): void {
+        console.log('Closing WaterRower...');
+        this.port.close(err => console.log(err));
+        this.port = null;
+        this.reads$.complete();
     }
 
     /// reset console
@@ -199,11 +226,13 @@ export class WaterRower extends events.EventEmitter {
     }
 }
 
+
 export interface WaterRowerOptions {
     portName?: string;
     baudRate?: number;
     refreshRate?: number;
     simulationMode?: boolean;
+    recordFile?: string;
 }
 
 export interface DataPoint {
