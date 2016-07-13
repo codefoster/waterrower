@@ -1,6 +1,7 @@
 {
   "globalDependencies": {
     "node": "registry:dt/node#6.0.0+20160613154055",
+    "serialport": "registry:dt/serialport#0.0.0+20160627065358",
     "socket.io-client": "registry:dt/socket.io-client#1.4.4+20160317120654"
   },
   "dependencies": {
