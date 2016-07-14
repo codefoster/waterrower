@@ -145,6 +145,7 @@ export class WaterRower extends events.EventEmitter {
         this.port.close(err => console.log(err));
         this.port = null;
         this.reads$.complete();
+        process.exit();
     }
 
     /// reset console
