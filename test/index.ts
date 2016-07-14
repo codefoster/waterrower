@@ -4,6 +4,7 @@ let waterrower = new WaterRower({ recordFile: 'rowdata' });
 
 waterrower.on('initialized', () => {
     waterrower.reset();
+    console.log('Rowing...');
 })
 
 waterrower.on('data', d => {
