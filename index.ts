@@ -7,12 +7,16 @@ import datapoints from './datapoints';
 import types from './types';
 import * as fs from 'fs';
 import * as readline from 'readline';
+import * as moment from 'moment';
+import * as path from 'path';
 
 export class WaterRower extends events.EventEmitter {
     private REFRESH_RATE = 200;
     private DEFAULT_BAUD_RATE = 19200;
     private port: serialport.SerialPort;
     private simulationMode: boolean = false;
+    private dataDirectory: string = 'data';
+    private recordingSubscription;
 
     // reads$ is all serial messages from the WR
     // datapoints$ isonly the reads that are a report of a memory location's value 
@@ -21,6 +25,9 @@ export class WaterRower extends events.EventEmitter {
 
     constructor(options: WaterRowerOptions = {}) {
         super();
+
+        if (options.dataDirectory) this.dataDirectory = options.dataDirectory;
+
         if (options.simulationMode) {
             this.simulationMode = true;
             this.readSimulationFile('simulationdata');
@@ -44,8 +51,6 @@ export class WaterRower extends events.EventEmitter {
             }
 
         }
-        if (options.recordFile)
-            this.writeSimulationFile(options.recordFile);
 
         this.setupStreams();
 
@@ -129,15 +134,6 @@ export class WaterRower extends events.EventEmitter {
         });
     }
 
-    private writeSimulationFile(filename) {
-        this.reads$
-            .filter(r => r.type != 'pulse') //pulses are noisy
-            .subscribe(
-            r => fs.appendFileSync(filename, JSON.stringify(r) + '\n')
-            );
-
-    }
-
     /// send a serial message
     private send(value): void {
         if (!this.simulationMode) this.port.write(value + '\r\n');
@@ -189,6 +185,17 @@ export class WaterRower extends events.EventEmitter {
         /// test, but I think this sets an initial value of {} and then iterates the
         /// datapoints adding the names/values as properties
         return datapoints.reduce((p, c) => p[c.name] = c.value, {})
+    }
+
+    startRecording(name?: string) {
+        name = name || moment().format('YYYY-MM-DD-HH-mm-ss');
+        this.recordingSubscription = this.reads$
+            .filter(r => r.type != 'pulse') //pulses are noisy
+            .subscribe(r => fs.appendFileSync(path.join(this.dataDirectory, name), JSON.stringify(r) + '\n'));
+    }
+
+    stopRecording() {
+        this.recordingSubscription.unsubscribe();
     }
 
     /// set up new workout session on the WR with set distance
@@ -248,7 +255,7 @@ export interface WaterRowerOptions {
     baudRate?: number;
     refreshRate?: number;
     simulationMode?: boolean;
-    recordFile?: string;
+    dataDirectory?: string;
 }
 
 export interface DataPoint {
