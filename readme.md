@@ -1,3 +1,4 @@
+
 Talk to your WaterRower!
 
 This project is being actively developed. It is stable and working as it is, but there's still more that can be added for more communication with the WaterRower device. Please jump in with contributions. Pull requests are welcome.
@@ -6,7 +7,7 @@ This project is being actively developed. It is stable and working as it is, but
 
 This project was initially created to support the [Waterbug](http://github.com/codefoster/waterbug) project.
 
-The current version 0.2.0 has some significant changes. It's much better. Instead of certain rowing session values (i.e. distance) being available by calling specific functions, any session values (that are defined in the datapoints.ts file) can be requested. I'll explain more in context below.
+Keep in mind that version 0.2.0 introduced some significant changes from 0.1.0 which is what's published in npm as of now. It's much better. Instead of certain rowing session values (i.e. distance) being available by calling specific functions, any session values (that are defined in the datapoints.ts file) can be requested. I'll explain more in context below.
 
 ## Installation
 
@@ -40,6 +41,22 @@ waterrower.on('initialized', () => {
     waterrower.reset();
 });
 ```
+## Simulation Mode
+
+Version 0.3.0 introduces simulation mode...
+```
+import { WaterRower } from 'waterrower';
+let waterrower = new WaterRower({ simulationMode: true });
+waterrower.on('data', d => {
+    console.log(d);
+});
+```
+Simulation mode is actually just playing back a recordes session. This functionality will continue to evolve. Eventually, I foresee being able to save, store, and recall multiple sessions.
+
+For now, the simulation data is stored in a file called `simulationdata`. It's only about 30 seconds of actual rowing. You can record over it by using...
+```
+new WaterRower({ recordFile: 'simulationdata' })
+```
 
 If you would prefer, you can directly access the observable properties available on the module. `waterrower.reads$` observes all serial messages that come from the WaterRower. `waterrower.datapoints$` is a filter and map of `reads$` and includes only the datapoints (memory location values).
 
@@ -64,6 +81,9 @@ waterrower.reads$
         // ping
     });
 ```
+
+Note that you can find all of the available "types" in the types.ts file. 
+
 ## API Reference
 
 ###`WaterRower()` (constructor)
@@ -84,8 +104,12 @@ See example `datapoints$.subscribe` above.
 
 `on('data', d => {...})` fires whenever a datapoint value changes. When the rower goes 1 more meter and his total distance changes from 237 to 238, for instance, this event will fire. 
 
+`on('close', d => {...})` fires when the WaterRower module is stopped. 
+
 ###`reset()`
-Send a signal to the WaterRower to reset. You'll hear your WaterRower beep and the numbers will flash ready for activity to begin. 
+Send a signal to the WaterRower to reset. You'll hear your WaterRower beep and the numbers will flash ready for activity to begin.
+
+Note that reset (as well as all other messages to the WaterRower) will not be sent when you're in simulation mode.
 
 ###`defineDistanceWorkout(distance: number, units: Units)`
 Initiates a distance workout on the WaterRower. Accepts `distance` and `units` parameters (units defaults to Meters).
@@ -127,6 +151,10 @@ let waterrower = new WaterRower({
   refreshRate:1000
 })
 ```
+
+`simulationmode` defaults to false. Set it to true if you don't actually have your app hooked up to a rower, but still want to be able to use it.
+
+`recordFile` is a string representing the relative path (relative from waterrower's root directory) and filename of the file you'd like to record your session in. Use 'simulationdata' if you'd like your session to be used for the main simulation data.
 
 ###IntensityDisplayOptions Enum
 This enum defines the possible values you can send to the `displaySetIntensity` method.
