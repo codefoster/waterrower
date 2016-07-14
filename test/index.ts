@@ -1,6 +1,7 @@
 import { WaterRower } from '..';
 
-let waterrower = new WaterRower({ recordFile: 'rowdata' });
+let waterrower = new WaterRower({ simulationMode: true });
+// let waterrower = new WaterRower({ recordFile: 'simulationdata' });
 
 waterrower.on('initialized', () => {
     waterrower.reset();
@@ -8,7 +9,7 @@ waterrower.on('initialized', () => {
 })
 
 waterrower.on('data', d => {
-    // console.log(JSON.stringify(d));
+    console.log(JSON.stringify(d));
 });
 
 waterrower.on('error', err => console.error(err));

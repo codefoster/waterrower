@@ -6,29 +6,24 @@ import * as events from 'events';
 import datapoints from './datapoints';
 import types from './types';
 import * as fs from 'fs';
+import * as readline from 'readline';
 
 export class WaterRower extends events.EventEmitter {
     private REFRESH_RATE = 200;
     private DEFAULT_BAUD_RATE = 19200;
     private port: serialport.SerialPort;
-    private recordFile: string = null;
+    private simulationMode: boolean = false;
 
     // reads$ is all serial messages from the WR
     // datapoints$ isonly the reads that are a report of a memory location's value 
-    reads$ = new Subject<{ type: string, data: string }>();
+    reads$ = new Subject<ReadValue>();
     datapoints$: Observable<DataPoint>;
 
     constructor(options: WaterRowerOptions = {}) {
         super();
         if (options.simulationMode) {
-            //simulate Waterrower initialization
-            let h = _.find(types, t => t.type == 'hardwaretype');
-            this.reads$.next({ type: h.type, data: null });
-
-            //start sending datapoints
-            let d = _.find(types, t => t.type == 'datapoint');
-            //iterate a sim file
-            this.reads$.next({ type: d.type, data: '' });
+            this.simulationMode = true;
+            this.readSimulationFile('simulationdata');
         }
         else {
             if (!options.portName) {
@@ -49,45 +44,10 @@ export class WaterRower extends events.EventEmitter {
             }
 
         }
-        if (options.recordFile) {
-            this.recordFile = options.recordFile;
-            fs.writeFileSync(this.recordFile, '[');
-            let firstrow = true;
-            this.reads$.subscribe(
-                r => {
-                    if (firstrow) firstrow = false;
-                    else fs.appendFileSync(this.recordFile, ',');
-                    fs.appendFileSync(this.recordFile, JSON.stringify(r));
-                },
-                null,
-                () => fs.appendFileSync(this.recordFile, ']')
-            );
-        }
+        if (options.recordFile)
+            this.writeSimulationFile(options.recordFile);
 
-        // this is the important stream for reading memory locations from the rower
-        // IDS is a single, IDD is a double, and IDT is a triple byte memory location
-        this.datapoints$ = this.reads$.filter(d => d.type === 'datapoint')
-            .map(d => {
-                
-                let pattern = _.find(types, t => t.type == 'datapoint').pattern;
-                let m = pattern.exec(d.data);
-                return {
-                    name: _.find(datapoints, point => point.address == m[2]).name,
-                    length: { 'S': 1, 'D': 2, 'T': 3 }[m[1]],
-                    address: m[2],
-                    value: m[3]
-                };
-            });
-
-        this.datapoints$.subscribe(d => {
-            this.emit('data', d);
-            _.find(datapoints, d2 => d2.address == d.address).value = ayb.hexToDec(d.value);
-        })
-
-        // when the WR comes back with _WR_ then consider the WR initialized
-        this.reads$.filter(d => d.type == 'hardwaretype').subscribe(d => {
-            this.emit('initialized');
-        });
+        this.setupStreams();
 
         process.on('SIGINT', () => {
             this.close();
@@ -119,7 +79,7 @@ export class WaterRower extends events.EventEmitter {
         });
         this.port.on('data', d => {
             let type = _.find(types, t => t.pattern.test(d));
-            this.reads$.next({ type: (type ? type.type : 'other'), data: d })
+            this.reads$.next({ time: Date.now(), type: (type ? type.type : 'other'), data: d })
         });
         this.port.on('closed', () => this.close);
         this.port.on('disconnect', () => this.close)
@@ -129,9 +89,58 @@ export class WaterRower extends events.EventEmitter {
         });
     }
 
+    private setupStreams() {
+        // this is the important stream for reading memory locations from the rower
+        // IDS is a single, IDD is a double, and IDT is a triple byte memory location
+        this.datapoints$ = this.reads$.filter(d => d.type === 'datapoint')
+            .map(d => {
+
+                let pattern = _.find(types, t => t.type == 'datapoint').pattern;
+                let m = pattern.exec(d.data);
+                return {
+                    name: _.find(datapoints, point => point.address == m[2]).name,
+                    length: { 'S': 1, 'D': 2, 'T': 3 }[m[1]],
+                    address: m[2],
+                    value: m[3]
+                };
+            });
+
+        //emit the data event
+        this.datapoints$.subscribe(d => {
+            this.emit('data', d);
+            _.find(datapoints, d2 => d2.address == d.address).value = ayb.hexToDec(d.value);
+        })
+
+        // when the WR comes back with _WR_ then consider the WR initialized
+        this.reads$.filter(d => d.type == 'hardwaretype').subscribe(d => {
+            this.emit('initialized');
+        });
+    }
+
+    private readSimulationFile(filename) {
+        let lineReader = readline.createInterface({ input: fs.createReadStream(filename, { encoding: 'utf-8' }) });
+        let simdata$: Observable<ReadValue> = Observable.fromEvent<ReadValue>(lineReader, 'line').map(value => JSON.parse(value.toString()));
+        let firstrow;
+        simdata$.subscribe(row => {
+            if (!firstrow) firstrow = row;
+            let delta = row.time - firstrow.time;
+            // console.log(delta);
+            setTimeout(() => { this.reads$.next({ time: row.time, type: row.type, data: row.data }) }, delta);
+        });
+    }
+
+    private writeSimulationFile(filename) {
+        this.reads$
+            .filter(r => r.type != 'pulse') //pulses are noisy
+            .subscribe(
+            r => fs.appendFileSync(filename, JSON.stringify(r) + '\n')
+            );
+
+    }
+
     /// send a serial message
     private send(value): void {
-        this.port.write(value + '\r\n');
+        if (!this.simulationMode) this.port.write(value + '\r\n');
     }
 
     /// initialize the connection    
@@ -142,9 +151,12 @@ export class WaterRower extends events.EventEmitter {
 
     private close(): void {
         console.log('Closing WaterRower...');
-        this.port.close(err => console.log(err));
-        this.port = null;
+        this.emit('close');
         this.reads$.complete();
+        if (this.port) {
+            this.port.close(err => console.log(err));
+            this.port = null;
+        }
         process.exit();
     }
 
@@ -244,6 +256,12 @@ export interface DataPoint {
     address: string,
     length: string,
     value: any
+}
+
+export interface ReadValue {
+    time: number
+    type: string
+    data: string
 }
 
 export enum IntensityDisplayOptions {
