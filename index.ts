@@ -15,7 +15,7 @@ export class WaterRower extends events.EventEmitter {
 
     // reads$ is all serial messages from the WR
     // datapoints$ isonly the reads that are a report of a memory location's value 
-    reads$ = new Subject<{ type: string, pattern: RegExp, data: string }>();
+    reads$ = new Subject<{ type: string, data: string }>();
     datapoints$: Observable<DataPoint>;
 
     constructor(options: WaterRowerOptions = {}) {
@@ -23,12 +23,12 @@ export class WaterRower extends events.EventEmitter {
         if (options.simulationMode) {
             //simulate Waterrower initialization
             let h = _.find(types, t => t.type == 'hardwaretype');
-            this.reads$.next({ type: h.type, pattern: h.pattern, data: null });
+            this.reads$.next({ type: h.type, data: null });
 
             //start sending datapoints
             let d = _.find(types, t => t.type == 'datapoint');
             //iterate a sim file
-            this.reads$.next({ type: d.type, pattern: d.pattern, data: '' });
+            this.reads$.next({ type: d.type, data: '' });
         }
         else {
             if (!options.portName) {
@@ -67,7 +67,9 @@ export class WaterRower extends events.EventEmitter {
         // IDS is a single, IDD is a double, and IDT is a triple byte memory location
         this.datapoints$ = this.reads$.filter(d => d.type === 'datapoint')
             .map(d => {
-                let m = d.pattern.exec(d.data);
+                
+                let pattern = _.find(types, t => t.type == 'datapoint').pattern;
+                let m = pattern.exec(d.data);
                 return {
                     name: _.find(datapoints, point => point.address == m[2]).name,
                     length: { 'S': 1, 'D': 2, 'T': 3 }[m[1]],
@@ -116,7 +118,7 @@ export class WaterRower extends events.EventEmitter {
         });
         this.port.on('data', d => {
             let type = _.find(types, t => t.pattern.test(d));
-            this.reads$.next({ type: (type ? type.type : 'other'), pattern: type.pattern, data: d })
+            this.reads$.next({ type: (type ? type.type : 'other'), data: d })
         });
         this.port.on('closed', () => this.close);
         this.port.on('disconnect', () => this.close)
