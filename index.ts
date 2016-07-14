@@ -14,7 +14,6 @@ export class WaterRower extends events.EventEmitter {
     private REFRESH_RATE = 200;
     private DEFAULT_BAUD_RATE = 19200;
     private port: serialport.SerialPort;
-    private simulationMode: boolean = false;
     private dataDirectory: string = 'data';
     private recordingSubscription;
 
@@ -28,28 +27,21 @@ export class WaterRower extends events.EventEmitter {
 
         if (options.dataDirectory) this.dataDirectory = options.dataDirectory;
 
-        if (options.simulationMode) {
-            this.simulationMode = true;
-            this.readSimulationFile('simulationdata');
+        if (!options.portName) {
+            console.log('No port configured. Attempting to discover...');
+            this.discoverPort(name => {
+                if (name) {
+                    console.log('Discovered a WaterRower on ' + name + '...');
+                    options.portName = name;
+                    this.setupSerialPort(options);
+                }
+                else
+                    console.log('We didn\'t find any connected WaterRowers');
+            })
         }
         else {
-            if (!options.portName) {
-                console.log('No port configured. Attempting to discover...');
-                this.discoverPort(name => {
-                    if (name) {
-                        console.log('Discovered a WaterRower on ' + name + '...');
-                        options.portName = name;
-                        this.setupSerialPort(options);
-                    }
-                    else
-                        console.log('We didn\'t find any connected WaterRowers');
-                })
-            }
-            else {
-                console.log('Setting up serial port on ' + options.portName + '...');
-                this.setupSerialPort(options);
-            }
-
+            console.log('Setting up serial port on ' + options.portName + '...');
+            this.setupSerialPort(options);
         }
 
         this.setupStreams();
@@ -122,21 +114,9 @@ export class WaterRower extends events.EventEmitter {
         });
     }
 
-    private readSimulationFile(filename) {
-        let lineReader = readline.createInterface({ input: fs.createReadStream(filename, { encoding: 'utf-8' }) });
-        let simdata$: Observable<ReadValue> = Observable.fromEvent<ReadValue>(lineReader, 'line').map(value => JSON.parse(value.toString()));
-        let firstrow;
-        simdata$.subscribe(row => {
-            if (!firstrow) firstrow = row;
-            let delta = row.time - firstrow.time;
-            // console.log(delta);
-            setTimeout(() => { this.reads$.next({ time: row.time, type: row.type, data: row.data }) }, delta);
-        });
-    }
-
     /// send a serial message
     private send(value): void {
-        if (!this.simulationMode) this.port.write(value + '\r\n');
+        if (this.port) this.port.write(value + '\r\n');
     }
 
     /// initialize the connection    
@@ -198,6 +178,21 @@ export class WaterRower extends events.EventEmitter {
         this.recordingSubscription.unsubscribe();
     }
 
+    getRecordings() {
+        return fs.readdirSync(this.dataDirectory);
+    }
+
+    playRecording(name: string) {
+        let lineReader = readline.createInterface({ input: fs.createReadStream(path.join(this.dataDirectory, name), { encoding: 'utf-8' }) });
+        let simdata$: Observable<ReadValue> = Observable.fromEvent<ReadValue>(lineReader, 'line').map(value => JSON.parse(value.toString()));
+        let firstrow;
+        simdata$.subscribe(row => {
+            if (!firstrow) firstrow = row;
+            let delta = row.time - firstrow.time;
+            setTimeout(() => { this.reads$.next({ time: row.time, type: row.type, data: row.data }) }, delta);
+        });
+    }
+
     /// set up new workout session on the WR with set distance
     defineDistanceWorkout(distance: number, units: Units = Units.Meters): void {
         this.send(`WSI${units}${ayb.decToHex(distance)}`);
@@ -254,7 +249,6 @@ export interface WaterRowerOptions {
     portName?: string;
     baudRate?: number;
     refreshRate?: number;
-    simulationMode?: boolean;
     dataDirectory?: string;
 }
 
