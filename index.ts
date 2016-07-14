@@ -55,11 +55,12 @@ export class WaterRower extends events.EventEmitter {
             let firstrow = true;
             this.reads$.subscribe(
                 r => {
-                    if (firstrow) firstrow = false; else fs.appendFile(this.recordFile, ',');
-                    fs.appendFile(this.recordFile, JSON.stringify(r))
+                    if (firstrow) firstrow = false;
+                    else fs.appendFileSync(this.recordFile, ',');
+                    fs.appendFileSync(this.recordFile, JSON.stringify(r));
                 },
                 null,
-                () => fs.appendFile(this.recordFile, ']')
+                () => fs.appendFileSync(this.recordFile, ']')
             );
         }
 
