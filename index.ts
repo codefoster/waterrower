@@ -104,8 +104,9 @@ export class WaterRower extends events.EventEmitter {
 
         //emit the data event
         this.datapoints$.subscribe(d => {
-            this.emit('data', d);
-            _.find(datapoints, d2 => d2.address == d.address).value = ayb.hexToDec(d.value);
+            let datapoint = _.find(datapoints, d2 => d2.address == d.address);
+            datapoint.value = ayb.hexToDec(d.value);
+            this.emit('data', datapoint);
         })
 
         // when the WR comes back with _WR_ then consider the WR initialized
