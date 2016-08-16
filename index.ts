@@ -195,6 +195,10 @@ export class WaterRower extends events.EventEmitter {
         });
     }
 
+    startSimulation() {
+        this.playRecording();
+    }
+
     /// set up new workout session on the WR with set distance
     defineDistanceWorkout(distance: number, units: Units = Units.Meters): void {
         this.send(`WSI${units}${ayb.decToHex(distance)}`);
