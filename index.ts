@@ -62,7 +62,7 @@ export class WaterRower extends events.EventEmitter {
 
     private setupSerialPort(options) {
         // setup the serial port
-        this.port = new serialport.SerialPort(options.portName, {
+        this.port = new serialport(options.portName, {
             baudrate: options.baudRate || this.DEFAULT_BAUD_RATE,
             disconnectedCallback: function () { console.log('disconnected'); },
             parser: serialport.parsers.readline("\n")
