@@ -11,8 +11,8 @@ import * as moment from 'moment';
 import * as path from 'path';
 
 export class WaterRower extends events.EventEmitter {
-    private refreshRate = 200;
-    private baudRate = 19200;
+    private refreshRate: number = 200;
+    private baudRate: number = 19200;
     private port:SerialPort;
     private dataDirectory: string = 'data';
     private recordingSubscription;
