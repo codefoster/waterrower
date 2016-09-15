@@ -1,5 +1,5 @@
 import { Observable, Subject } from 'rxjs/Rx';
-import * as serialport from 'serialport';
+import * as SerialPort from 'serialport';
 import * as ayb from 'all-your-base';
 import * as _ from 'lodash';
 import * as events from 'events';
@@ -13,7 +13,7 @@ import * as path from 'path';
 export class WaterRower extends events.EventEmitter {
     private refreshRate = 200;
     private baudRate = 19200;
-    private port: serialport.SerialPort;
+    private port:SerialPort;
     private dataDirectory: string = 'data';
     private recordingSubscription;
 
@@ -25,7 +25,9 @@ export class WaterRower extends events.EventEmitter {
     constructor(options: WaterRowerOptions = {}) {
         super();
 
-        if (options.dataDirectory) this.dataDirectory = options.dataDirectory;
+        this.dataDirectory = options.dataDirectory || this.dataDirectory;
+        this.refreshRate = options.refreshRate || this.refreshRate;
+        this.baudRate = options.baudRate || this.baudRate;
 
         if (!options.portName) {
             console.log('No port configured. Attempting to discover...');
@@ -53,7 +55,7 @@ export class WaterRower extends events.EventEmitter {
     }
 
     private discoverPort(callback) {
-        serialport.list((err, ports) => {
+        SerialPort.list((err, ports) => {
             let p = _.find(ports, p => p.manufacturer === 'Microchip Technology, Inc.');
             if (p) callback(p.comName);
             else callback();
@@ -62,10 +64,10 @@ export class WaterRower extends events.EventEmitter {
 
     private setupSerialPort(options) {
         // setup the serial port
-        this.port = new serialport(options.portName, {
+        this.port = new SerialPort(options.portName, {
             baudrate: options.baudRate || this.baudRate,
             disconnectedCallback: function () { console.log('disconnected'); },
-            parser: serialport.parsers.readline("\n")
+            parser: SerialPort.parsers.readline("\n")
         });
 
         // setup port events
