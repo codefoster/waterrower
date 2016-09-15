@@ -13,8 +13,9 @@ import * as path from 'path';
 export class WaterRower extends events.EventEmitter {
     private refreshRate: number = 200;
     private baudRate: number = 19200;
-    private port:SerialPort;
+    private port: SerialPort;
     private dataDirectory: string = 'data';
+    private datapoints: string|string[];
     private recordingSubscription;
 
     // reads$ is all serial messages from the WR
@@ -28,6 +29,7 @@ export class WaterRower extends events.EventEmitter {
         this.dataDirectory = options.dataDirectory || this.dataDirectory;
         this.refreshRate = options.refreshRate || this.refreshRate;
         this.baudRate = options.baudRate || this.baudRate;
+        this.datapoints = options.datapoints;
 
         if (!options.portName) {
             console.log('No port configured. Attempting to discover...');
@@ -73,8 +75,8 @@ export class WaterRower extends events.EventEmitter {
         // setup port events
         this.port.on('open', () => {
             console.log(`A connection to the WaterRower has been established on ${options.portName}`);
-            this.initialize(); //start things off
-            if (options.refreshRate !== 0) setInterval(() => this.requestAll(), options.refreshRate || this.refreshRate); //have to put requestAll in a fat arrow function for correct function binding
+            this.initialize();
+            if (options.refreshRate !== 0) setInterval(() => this.requestDataPoints(this.datapoints), this.refreshRate);
         });
         this.port.on('data', d => {
             let type = _.find(types, t => t.pattern.test(d));
@@ -145,17 +147,24 @@ export class WaterRower extends events.EventEmitter {
         this.send('RESET'); //reset the waterrower 
     }
 
-    /// Issues a request for a specific data point.
+    /// Issues a request for one, more, or all data points.
     /// There is no return value. Data point values can be read very
     /// shortly after the request is made 
-    requestDataPoint(name: string): void {
-        let dataPoint = _.find(datapoints, d => d.name == name);
-        this.send(`IR${dataPoint.length}${dataPoint.address}`)
-    }
+    requestDataPoints(points?: string | string[]): void {
+        let req = (name: string): void => {
+            console.log('requesting ' + name);
+            let dataPoint = _.find(datapoints, d => d.name == name);
+            this.send(`IR${dataPoint.length}${dataPoint.address}`)
+        }
 
-    /// requestAll calls requestDataPoint on all of the datapoints
-    requestAll(): void {
-        datapoints.forEach(d => this.requestDataPoint(d.name));
+        if (points) {
+            if (Array.isArray(points)) points.forEach(p => req(p));
+            else if (typeof points === 'string') req(points)
+            else throw ('requestDataPoint requires a string, an array of strings, or nothing at all');
+        }
+        else
+            datapoints.forEach(d => req(d.name));
+        
     }
 
     /// find the value of a single datapoint
@@ -258,6 +267,7 @@ export interface WaterRowerOptions {
     baudRate?: number;
     refreshRate?: number;
     dataDirectory?: string;
+    datapoints?: string|string[];
 }
 
 export interface DataPoint {
