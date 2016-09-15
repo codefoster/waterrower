@@ -11,8 +11,8 @@ import * as moment from 'moment';
 import * as path from 'path';
 
 export class WaterRower extends events.EventEmitter {
-    private REFRESH_RATE = 200;
-    private DEFAULT_BAUD_RATE = 19200;
+    private refreshRate = 200;
+    private baudRate = 19200;
     private port: serialport.SerialPort;
     private dataDirectory: string = 'data';
     private recordingSubscription;
@@ -63,7 +63,7 @@ export class WaterRower extends events.EventEmitter {
     private setupSerialPort(options) {
         // setup the serial port
         this.port = new serialport(options.portName, {
-            baudrate: options.baudRate || this.DEFAULT_BAUD_RATE,
+            baudrate: options.baudRate || this.baudRate,
             disconnectedCallback: function () { console.log('disconnected'); },
             parser: serialport.parsers.readline("\n")
         });
@@ -72,7 +72,7 @@ export class WaterRower extends events.EventEmitter {
         this.port.on('open', () => {
             console.log(`A connection to the WaterRower has been established on ${options.portName}`);
             this.initialize(); //start things off
-            if (options.refreshRate !== 0) setInterval(() => this.requestAll(), options.refreshRate || this.REFRESH_RATE); //have to put requestAll in a fat arrow function for correct function binding
+            if (options.refreshRate !== 0) setInterval(() => this.requestAll(), options.refreshRate || this.refreshRate); //have to put requestAll in a fat arrow function for correct function binding
         });
         this.port.on('data', d => {
             let type = _.find(types, t => t.pattern.test(d));
