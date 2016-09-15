@@ -15,7 +15,7 @@ export class WaterRower extends events.EventEmitter {
     private baudRate: number = 19200;
     private port: SerialPort;
     private dataDirectory: string = 'data';
-    private datapoints: string|string[];
+    private datapoints: string | string[];
     private recordingSubscription;
 
     // reads$ is all serial messages from the WR
@@ -164,19 +164,21 @@ export class WaterRower extends events.EventEmitter {
         }
         else
             datapoints.forEach(d => req(d.name));
-        
+
     }
 
-    /// find the value of a single datapoint
-    readDataPoint(name: string): any {
-        console.log('reading ' + name);
-        return _.find(datapoints, d => d.name == name).value;
-    }
-
-    readAll(): Object {
-        /// test, but I think this sets an initial value of {} and then iterates the
-        /// datapoints adding the names/values as properties
-        return datapoints.reduce((p, c) => p[c.name] = c.value, {})
+    readDataPoints(points?: string | string[]): any {
+        if (points) {
+            if (Array.isArray(points)) {
+                return datapoints
+                    .filter(dp => points.some(p => p == dp.name)) //filter to the points that were passed in
+                    .reduce((p, c) => { p[c.name] = c.value; return p; }, {}); //build up an array of the chosen points
+            }
+            else if (typeof points === 'string') return _.find(datapoints, d => d.name == points).value;
+            else throw ('readDataPoints requires a string, an array of strings, or nothing at all');
+        }
+        else
+            return datapoints.reduce((p, c) => p[c.name] = c.value, {});
     }
 
     startRecording(name?: string) {
@@ -267,7 +269,7 @@ export interface WaterRowerOptions {
     baudRate?: number;
     refreshRate?: number;
     dataDirectory?: string;
-    datapoints?: string|string[];
+    datapoints?: string | string[];
 }
 
 export interface DataPoint {
