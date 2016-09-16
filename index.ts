@@ -188,15 +188,15 @@ export class WaterRower extends events.EventEmitter {
             .subscribe(r => fs.appendFileSync(path.join(this.dataDirectory, name), JSON.stringify(r) + '\n'));
     }
 
-    stopRecording() {
+    stopRecording(): void {
         this.recordingSubscription.unsubscribe();
     }
 
-    getRecordings() {
+    getRecordings(): string[] {
         return fs.readdirSync(this.dataDirectory);
     }
 
-    playRecording(name?: string) {
+    playRecording(name?: string): void {
         name = name || 'simulationdata';
         let lineReader = readline.createInterface({ input: fs.createReadStream(path.join(this.dataDirectory, name), { encoding: 'utf-8' }) });
         let simdata$: Observable<ReadValue> = Observable.fromEvent<ReadValue>(lineReader, 'line').map(value => JSON.parse(value.toString()));
@@ -208,7 +208,7 @@ export class WaterRower extends events.EventEmitter {
         });
     }
 
-    startSimulation() {
+    startSimulation(): void {
         this.playRecording();
     }
 
