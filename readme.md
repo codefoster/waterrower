@@ -41,22 +41,6 @@ waterrower.on('initialized', () => {
     waterrower.reset();
 });
 ```
-## Simulation Mode
-
-Version 0.3.0 introduces simulation mode...
-```
-import { WaterRower } from 'waterrower';
-let waterrower = new WaterRower({ simulationMode: true });
-waterrower.on('data', d => {
-    console.log(d);
-});
-```
-Simulation mode is actually just playing back a recordes session. This functionality will continue to evolve. Eventually, I foresee being able to save, store, and recall multiple sessions.
-
-For now, the simulation data is stored in a file called `simulationdata`. It's only about 30 seconds of actual rowing. You can record over it by using...
-```
-new WaterRower({ recordFile: 'simulationdata' })
-```
 
 If you would prefer, you can directly access the observable properties available on the module. `waterrower.reads$` observes all serial messages that come from the WaterRower. `waterrower.datapoints$` is a filter and map of `reads$` and includes only the datapoints (memory location values).
 
@@ -82,22 +66,30 @@ waterrower.reads$
     });
 ```
 
-Note that you can find all of the available "types" in the types.ts file. 
+Note that you can find all of the available "types" in the `types.ts` file. 
 
 ## API Reference
 
-###`WaterRower()` (constructor)
+> The members in this API Reference are depicted using TypeScript to give you an idea of the parameter types and return types. Take, for example...
+> 
+> ```
+> f(p1?: string | string[]): number 
+> ```
+> 
+> ...where function `f` receives an optional (depicted by the `?`) parameter `p1` with a type of either `string` or `string[]` and has a return value of type `number`  
+
+### `WaterRower()` (constructor)
 Takes an `options` parameter that must at minimum have a portName. Options are specified in `WaterRowerOptions` (documented below).
 
-###`reads$`
+### `reads$`
 This is the Rx stream that fires whenever the WaterRower sends any serial message. You can check the pdf documentation distributed by WaterRower to see all valid messages. Read messages have a type and are thus easy to filter. They also have a value property with the data portion of the message.
      
-###`datapoints$`
+### `datapoints$`
 This is simply a filter of the reads$ stream containing only the datapoint messages.
 
 See example `datapoints$.subscribe` above.
 
-###`on()`
+### `on(): void`
 `on()` is the typical means of subscribing to node EventEmitter events. Valid events for waterrower are...
 
 `on('initiazed', d => {...})` fires when the port connection to the WaterRower has been established, an initialization message has been sent, and the unit has responded with its "hardware type" message (`_WR_`). 
@@ -106,63 +98,110 @@ See example `datapoints$.subscribe` above.
 
 `on('close', d => {...})` fires when the WaterRower module is stopped. 
 
-###`reset()`
+### `reset(): void`
 Send a signal to the WaterRower to reset. You'll hear your WaterRower beep and the numbers will flash ready for activity to begin.
 
-Note that reset (as well as all other messages to the WaterRower) will not be sent when you're in simulation mode.
-
-###`defineDistanceWorkout(distance: number, units: Units)`
-Initiates a distance workout on the WaterRower. Accepts `distance` and `units` parameters (units defaults to Meters).
-
-###`defineDurationWorkout(seconds: number)`
-Initiates a duration workout on the WaterRower. Accepts the number of seconds for the new workout. 
-
-###`requestDataPoint(name: string)`
+### `requestDataPoints(points?: string | string[]): any`
 Asks the WaterRower to send the value for a the datapoint with the given name. The returned value happens in a completely separate serial message, so it is not returned by this function. Rather, after issuing this request, you would use `readDataPoint` to get the new value. Note that you should only need to do this if the `options.refreshRate` is set to `0` and thus the module is not configured to poll the waterrower on a regular interval. When the module is configured (as it is by default) with an options.refreshRate value > 0, you should only ever need to `readDataPoint` whenever you are not subscribed.
 
-###`requestAll()`
-Asks the WaterRower to send all datapoint values.
+### `readDataPoints(points?: string | string[]): any`
+Gets the current value of a single datapoint, an array of datapoints, or all datapoints depending on what you pass in. This does not request the latest value from the waterrower, but will be current if the module is refreshing (`options.refreshRate > 0`). If it is not, then the `requestDataPoints` method should be called prior to this and a short time waited before reading.
 
-###`readDataPoint(name: string)`
-Gets the current value of a single datapoint based on the name provided. This does not request the latest value, but will be current if the module is refreshing (`options.refreshRate > 0`). If it is not, then the `requestDataPoint` method should be called prior to this and a short time waited before reading.
+To read a single data, simply pass in the datapoint name as a string...
 
-###`readAll()`
-Composes all of the current datapoint values into a single object and returns. 
+```
+waterrower.readDataPoints('distance');
+```
 
-###`displaySetDistance(units: Units)`
+To read multiple datapoints, pass in an array of datapoint names as an array of strings...
+
+```
+waterrower.readDataPoints(['distance','total_kcal']);
+```
+
+To read all datapoints, just leave the value blank...
+
+```
+waterrower.readDataPoints();
+```
+
+### `defineDistanceWorkout(distance: number, units: Units)`
+Initiates a distance workout on the WaterRower. Accepts `distance` and `units` parameters (units defaults to Meters).
+
+### `defineDurationWorkout(seconds: number)`
+Initiates a duration workout on the WaterRower. Accepts the number of seconds for the new workout. 
+
+### `displaySetDistance(units: Units)`
 Change the distance display units. See Units for possible values.
 
-###`displaySetIntensity(option: IntensityDisplayOptions)`
+### `displaySetIntensity(option: IntensityDisplayOptions)`
 Change the intensity display. See IntensityDisplayOptions for possible values.
 
-###`displaySetAverageIntensity(option: AverageIntensityDisplayOptions)`
+### `displaySetAverageIntensity(option: AverageIntensityDisplayOptions)`
 Change the average intensity display. See AverageIntensityDisplayOptions for possible values.
 
-###WaterRowerOptions Interface
-These are the options that you can pass to the WaterRower constructor. None of the options are required.
+### Recording and Playing Back Sessions
+waterrower offers the ability to record and playback rowing sessions.
 
-`baudRate` and `refreshRate` have defaults and are optional.
+These recordings are a file containing all serial messages to cross the wire. For example...
 
-If `portName` is omitted then the waterrower module will automatically attempt to discover the port that the WaterRower is on.
+```
+{"time":1468559128188,"type":"hardwaretype","data":"_WR_\r"}
+{"time":1468559128386,"type":"datapoint","data":"IDD0550007\r"}
+{"time":1468559128397,"type":"datapoint","data":"IDD0570007\r"}
+{"time":1468559128402,"type":"datapoint","data":"IDD0810007\r"}
+```
+
+The project contains a `data` folder with one 30 minute rowing session that you can play back. This essentially allows you to simulate a rowing session for development purposes.
+
+To start the simulation data, use...
+
+```
+import { WaterRower } from 'waterrower';
+let waterrower = new WaterRower();
+waterrower.startSimulation();
+waterrower.on('data', d => {
+    console.log(d);
+});
+```
+`startRecording(name?: string)` starts recording all serial messages coming _from_ the rower to a file called `name` in the data directory. If name is not provided, then a date/time stamp will be used for the file name.
+
+`stopRecording(): void` stops the current recording.
+
+`getRecordings(): string[]` returns a list of all recorded sessions from the data directory.
+
+`playRecording(name?: string): void` starts playing back a recorded session by `name`. If no name is provided then it will defaults to `simulationdata` - the name of the 30-minute rowing session that comes with waterrower.
+
+`startSimulation(): void` is a shortcut method that is identical to calling `playRecording()`.
+
+### WaterRowerOptions Interface
+These are the options that you can pass to the WaterRower constructor. All of the options are optional.
+
 ```
 let waterrower = new WaterRower({
   portName:'/dev/ttyACM0', //or perhaps 'COM6'
   baudRate:19200,
-  refreshRate:1000
+  refreshRate:200,
+  dataDirectory:'data',
+  datapoints:['distance','total_kcal']
 })
 ```
 
-`simulationmode` defaults to false. Set it to true if you don't actually have your app hooked up to a rower, but still want to be able to use it.
+If `portName` is omitted then the waterrower module will automatically attempt to discover the port that the WaterRower is on.
 
-`recordFile` is a string representing the relative path (relative from waterrower's root directory) and filename of the file you'd like to record your session in. Use 'simulationdata' if you'd like your session to be used for the main simulation data.
+`baudRate` and `refreshRate` have defaults and are optional.
 
-###IntensityDisplayOptions Enum
+`dataDirectory` is a string representing the path (relative to waterrower's root directory) of the directory where session recordings should be saved.
+
+`datapoints` is either a string representing a single datapoint or an array of strings representing all of the datapoints that you want waterrower to request every refresh. Keeping this list as trim as possible will reduce the number of messages that are generated while rowing, so it's recommended you only include the data you're interested in. 
+
+### IntensityDisplayOptions Enum
 This enum defines the possible values you can send to the `displaySetIntensity` method.
 ```
 this.displaySetIntensity(IntensityDisplayOptions.MetersPerSecond);
 ```
 
-###AverageIntensityDisplayOptions Enum
+### AverageIntensityDisplayOptions Enum
 This enum defines the possible values you can send to the `displaySetAverageIntensity` method.
 
 Possible values are: `AverageMetersPerSecond`,`AverageMPH`,`_500m`, and `_2km`
@@ -171,7 +210,7 @@ Possible values are: `AverageMetersPerSecond`,`AverageMPH`,`_500m`, and `_2km`
 this.displaySetIntensity(AverageIntensityDisplayOptions.AverageMetersPerSecond);
 ```
 
-###Units Enum
+### Units Enum
 This enum defines the possible values you can send to the `displaySetAverageIntensity` method.
 
 Possible values are: `Meters`, `Miles`, `Kilometers`, and `Strokes`
@@ -183,8 +222,8 @@ import { WaterRower, Units } from 'waterrower';
 this.defineDistanceWorkout(500, Units.Meters);
 ```
 
-###DataPoint Interface
-The DataPoint interface constitutes a type for the objects in the datapoints.ts file and the type returned in the `datapoints$` stream.
+### DataPoint Interface
+The DataPoint interface constitutes a type for the objects in the `datapoints.ts` file and the type returned in the `datapoints$` stream.
 
 ```
 export interface DataPoint {
