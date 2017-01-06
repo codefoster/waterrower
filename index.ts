@@ -109,7 +109,7 @@ export class WaterRower extends events.EventEmitter {
         //emit the data event
         this.datapoints$.subscribe(d => {
             let datapoint = _.find(datapoints, d2 => d2.address == d.address);
-            datapoint.value = ayb.hexToDec(d.value);
+            datapoint.value = parseInt(d.value, datapoint.radix);
             this.emit('data', datapoint);
         })
 
