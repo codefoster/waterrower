@@ -29,4 +29,32 @@ describe('waterrower', function () {
       setTimeout(function() { waterrower.stopRecording(); }, 10000);
     });
   });
+
+  // datapoint processing
+  describe('datapoint processing', () => {
+    let waterrower;
+
+    beforeEach(() => {
+      waterrower = new WaterRower();
+      waterrower.setupStreams();
+    })
+
+    it('treats distance as a hexadecimal integer', done => {
+      waterrower.once('data', point => {
+        assert.equal(point.name, 'distance');
+        assert.equal(point.value, 7350);
+        done();
+      });
+      waterrower.reads$.next({ time: 1468559128188, type: 'datapoint', data: 'IDD0571CB6\r'});
+    });
+
+    it('treats display minutes as a decimal integer', done => {
+      waterrower.once('data', point => {
+        assert.equal(point.name, 'display_min');
+        assert.equal(point.value, 28);
+        done();
+      });
+      waterrower.reads$.next({ time: 1468559128188, type: 'datapoint', data: 'IDS1E228\r'});
+    });
+  });
 });
