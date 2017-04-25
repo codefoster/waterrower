@@ -58,7 +58,10 @@ export class WaterRower extends events.EventEmitter {
 
     private discoverPort(callback) {
         SerialPort.list((err, ports) => {
-            let p = _.find(ports, p => p.manufacturer === 'Microchip Technology, Inc.');
+            const p = _.find(ports, p => _.includes([
+                'Microchip Technology, Inc.', // standard
+                'Microchip Technology Inc.' // macOS specific?
+            ], p.manufacturer));
             if (p) callback(p.comName);
             else callback();
         });
