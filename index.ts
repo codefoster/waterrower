@@ -99,10 +99,10 @@ export class WaterRower extends events.EventEmitter {
         this.datapoints$ = this.reads$
             .filter(d => d.type === 'datapoint')
             .map(d => {
-
                 let pattern = _.find(types, t => t.type == 'datapoint').pattern;
                 let m = pattern.exec(d.data);
                 return {
+                    time: new Date(d.time),
                     name: _.find(datapoints, point => point.address == m[2]).name,
                     length: { 'S': 1, 'D': 2, 'T': 3 }[m[1]],
                     address: m[2],
@@ -279,6 +279,7 @@ export interface WaterRowerOptions {
 }
 
 export interface DataPoint {
+    time?: Date;
     name?: string,
     address: string,
     length: string,
