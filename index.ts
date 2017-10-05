@@ -96,7 +96,8 @@ export class WaterRower extends events.EventEmitter {
     private setupStreams() {
         // this is the important stream for reading memory locations from the rower
         // IDS is a single, IDD is a double, and IDT is a triple byte memory location
-        this.datapoints$ = this.reads$.filter(d => d.type === 'datapoint')
+        this.datapoints$ = this.reads$
+            .filter(d => d.type === 'datapoint')
             .map(d => {
 
                 let pattern = _.find(types, t => t.type == 'datapoint').pattern;
