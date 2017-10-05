@@ -25,9 +25,9 @@
   "author": "Jeremy Foster <jeremy.foster@live.com>",
   "license": "Apache-2.0",
   "dependencies": {
-    "@types/lodash": "^4.14.34",
-    "@types/node": "^6.0.38",
-    "@types/serialport": "^4.0.3",
+    "@types/lodash": "^4.14.77",
+    "@types/node": "^8",
+    "@types/serialport": "^4.0.10",
     "all-your-base": "^0.3.0",
     "lodash": "^4.13.1",
     "moment": "^2.14.1",
@@ -35,6 +35,6 @@
     "serialport": "^5.0.0"
   },
   "devDependencies": {
-    "typescript": "^1.8.10"
+    "typescript": "^2"
   }
 }
