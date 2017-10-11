@@ -1,7 +1,12 @@
-var assert = require('chai').assert;
 import { WaterRower } from '..';
+let chai = require('chai');
 
-describe('waterrower', function () {
+let assert = chai.assert;
+let describe = chai.describe;
+let it = chai.it;
+let beforeEach = chai.beforeEach;
+
+chai.describe('waterrower', function () {
 
   //constructor
   describe('constructor', function () {
