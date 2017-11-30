@@ -224,7 +224,7 @@ export class WaterRower extends events.EventEmitter {
 
     /// set up new workout session on the WR with set duration
     defineDurationWorkout(seconds: number): void {
-        this.send('WSU${ayb.decToHex(seconds)}');
+        this.send(`WSU${ayb.decToHex(seconds)}`);
     }
 
     /// change the display to meters, miles, kilometers, or strokes
