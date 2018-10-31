@@ -1,4 +1,8 @@
 export default [
+    //performance variables
+    { name: 'mph', address: '1A3', length: 'D', value: null },
+    { name: 'stroke_rate', address: '1A9', length: 'S', value: null },
+        
     //screen mode variables
     { name: 'screen_mode', address: '00D', length: 'S', radix: 16, value: null },
     { name: 'screen_sub_mode', address: '00E', length: 'S', radix: 16, value: null },
