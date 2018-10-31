@@ -1,6 +1,6 @@
 {
   "name": "waterrower",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "description": "Talk to your WaterRower!",
   "main": "index.js",
   "scripts": {
@@ -34,7 +34,7 @@
     "lodash": "^4.13.1",
     "moment": "^2.14.1",
     "rxjs": "^5.4.3",
-    "serialport": "^6.0.0"
+    "serialport": "^6.2.2"
   },
   "devDependencies": {
     "typescript": "^2"
