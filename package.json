@@ -26,8 +26,8 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@types/chai": "^4",
+    "@types/lodash": "^4.14.117",
     "@types/mocha": "^5",
-    "@types/lodash": "^4",
     "@types/node": "^10",
     "@types/serialport": "^7",
     "all-your-base": "^0.3.0",
