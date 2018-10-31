@@ -4,11 +4,11 @@
   "description": "Talk to your WaterRower!",
   "main": "index.js",
   "scripts": {
-    "tsc": "tsc",
-    "tsc:w": "tsc -w",
+    "build": "tsc",
+    "watch": "tsc -w",
     "test": "mocha test",
-    "start": "tsc -w",
-    "postinstall": "node ./node_modules/typescript/bin/tsc"
+    "start": "node ./sample-client/.",
+    "xpostinstall": "node ./node_modules/typescript/bin/tsc"
   },
   "keywords": [
     "exercise",
