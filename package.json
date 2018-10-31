@@ -25,18 +25,17 @@
   "author": "Jeremy Foster <jeremy.foster@live.com>",
   "license": "Apache-2.0",
   "dependencies": {
-    "@types/chai": "^4.0.4",
-    "@types/es6-shim": "*",
-    "@types/lodash": "^4.14.77",
-    "@types/node": "*",
-    "@types/serialport": "*",
+    "@types/chai": "^4",
+    "@types/lodash": "^4",
+    "@types/node": "^10",
+    "@types/serialport": "^7",
     "all-your-base": "^0.3.0",
-    "lodash": "^4.13.1",
-    "moment": "^2.14.1",
-    "rxjs": "^5.4.3",
-    "serialport": "^6.2.2"
+    "lodash": "^4",
+    "moment": "^2",
+    "rxjs": "^5",
+    "serialport": "^7"
   },
   "devDependencies": {
-    "typescript": "^2"
+    "typescript": "^3"
   }
 }
