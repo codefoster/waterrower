@@ -1,13 +1,13 @@
 {
   "name": "waterrower",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "description": "Talk to your WaterRower!",
-  "main": "index.js",
+  "main": "lib/index.js",
   "scripts": {
     "build": "tsc",
     "watch": "tsc -w",
-    "test": "mocha test",
-    "start": "node ./sample-client/.",
+    "test": "mocha lib/test",
+    "start": "node ./lib/sample-client/.",
     "xpostinstall": "node ./node_modules/typescript/bin/tsc"
   },
   "keywords": [
@@ -37,6 +37,8 @@
     "serialport": "^7"
   },
   "devDependencies": {
-    "typescript": "^3"
+    "typescript": "^3",
+    "mocha": "^5",
+    "chai": "^4"
   }
 }

@@ -1,15 +1,11 @@
 import { WaterRower } from '..';
-let chai = require('chai');
+import { assert } from 'chai';
+import { describe, beforeEach, it } from "mocha";
 
-let assert = chai.assert;
-let describe = chai.describe;
-let it = chai.it;
-let beforeEach = chai.beforeEach;
-
-chai.describe('waterrower', function () {
+describe('waterrower', () => {
 
   //constructor
-  describe('constructor', function () {
+  describe('constructor', () => {
     it('can instantiate waterrower with no arguments', function () {
       let waterrower = new WaterRower();
 
@@ -22,7 +18,7 @@ chai.describe('waterrower', function () {
   });
 
   //session playback
-  describe('session playback', function () {
+  describe('session playback', () => {
     it('can playback default simulation data', function () {
       let waterrower = new WaterRower();
       waterrower.playRecording('simulationdata');
@@ -39,9 +35,10 @@ chai.describe('waterrower', function () {
   describe('datapoint processing', () => {
     let waterrower;
 
-    beforeEach(() => {
+    beforeEach(done => {
       waterrower = new WaterRower();
       waterrower.setupStreams();
+      done();
     })
 
     it('treats distance as a hexadecimal integer', done => {

@@ -14,7 +14,7 @@ export class WaterRower extends events.EventEmitter {
     private refreshRate: number = 200;
     private baudRate: number = 19200;
     private port: SerialPort;
-    private dataDirectory: string = 'data';
+    private dataDirectory: string = 'lib/data';
     private datapoints: string | string[];
     private recordingSubscription;
 
