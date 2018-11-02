@@ -37,3 +37,4 @@ node_modules
 *.js 
 *.js.map
 typings
+lib/data/2018*
