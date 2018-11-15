@@ -1,6 +1,6 @@
 {
   "name": "waterrower",
-  "version": "0.8.1",
+  "version": "0.8.2",
   "description": "Talk to your WaterRower!",
   "main": "lib/index.js",
   "scripts": {
@@ -8,7 +8,7 @@
     "watch": "tsc -w",
     "test": "mocha lib/test",
     "start": "node ./lib/sample-client/.",
-    "xpostinstall": "node ./node_modules/typescript/bin/tsc"
+    "postinstall": "tsc"
   },
   "keywords": [
     "exercise",
@@ -34,10 +34,10 @@
     "lodash": "^4",
     "moment": "^2",
     "rxjs": "^5",
+    "typescript": "^3",
     "serialport": "^7"
   },
   "devDependencies": {
-    "typescript": "^3",
     "mocha": "^5",
     "chai": "^4"
   }
