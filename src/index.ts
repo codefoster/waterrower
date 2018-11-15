@@ -14,7 +14,7 @@ export class WaterRower extends events.EventEmitter {
     private refreshRate: number = 200;
     private baudRate: number = 19200;
     private port: SerialPort;
-    private dataDirectory: string = 'data';
+    private dataDirectory: string = 'lib/data';
     private datapoints: string | string[];
     private recordingSubscription;
 
@@ -70,10 +70,8 @@ export class WaterRower extends events.EventEmitter {
     private setupSerialPort(options) {
         // setup the serial port
         this.port = new SerialPort(options.portName, {
-            baudRate: options.baudRate || this.baudRate,
-            parser: SerialPort.parsers.Readline("\n")
+            baudRate: options.baudRate || this.baudRate
         });
-
         // setup port events
         this.port.on('open', () => {
             console.log(`A connection to the WaterRower has been established on ${options.portName}`);

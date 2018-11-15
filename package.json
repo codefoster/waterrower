@@ -1,15 +1,16 @@
 {
   "name": "waterrower",
-  "version": "0.8.0",
+  "version": "0.8.4",
   "description": "Talk to your WaterRower!",
-  "main": "index.js",
+  "main": "lib/index.js",
   "scripts": {
-    "tsc": "tsc",
-    "tsc:w": "tsc -w",
-    "test": "mocha test",
-    "start": "tsc -w",
-    "postinstall": "node ./node_modules/typescript/bin/tsc"
+    "build": "tsc",
+    "watch": "tsc -w",
+    "test": "mocha lib/test",
+    "start": "node ./lib/sample-client/.",
+    "postinstall": "tsc"
   },
+  "types": "./lib/index.d.ts",
   "keywords": [
     "exercise",
     "row",
@@ -25,18 +26,20 @@
   "author": "Jeremy Foster <jeremy.foster@live.com>",
   "license": "Apache-2.0",
   "dependencies": {
-    "@types/chai": "^4.0.4",
-    "@types/es6-shim": "*",
-    "@types/lodash": "^4.14.77",
-    "@types/node": "*",
-    "@types/serialport": "*",
+    "@types/chai": "^4",
+    "@types/lodash": "^4.14.117",
+    "@types/mocha": "^5",
+    "@types/node": "^10",
+    "@types/serialport": "^7",
     "all-your-base": "^0.3.0",
-    "lodash": "^4.13.1",
-    "moment": "^2.14.1",
-    "rxjs": "^5.4.3",
-    "serialport": "^6.2.2"
+    "lodash": "^4",
+    "moment": "^2",
+    "rxjs": "^5",
+    "typescript": "^3",
+    "serialport": "^7"
   },
   "devDependencies": {
-    "typescript": "^2"
+    "mocha": "^5",
+    "chai": "^4"
   }
 }
