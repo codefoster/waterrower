@@ -13,7 +13,7 @@ Keep in mind that version 0.2.0 introduced some significant changes from 0.1.0 w
 
 In your terminal...
 ```
-npm install waterrower --save
+npm install waterrower
 
 ```
 In your project code...
