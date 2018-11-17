@@ -1,7 +1,7 @@
 import { Observable, Subject } from 'rxjs/Rx';
 import * as SerialPort from 'serialport';
 import * as ayb from 'all-your-base';
-import * as _ from 'lodash';
+import { padStart, find, includes } from "lodash";
 import * as events from 'events';
 import datapoints from './datapoints';
 import types from './types';
@@ -58,7 +58,7 @@ export class WaterRower extends events.EventEmitter {
 
     private discoverPort(callback) {
         SerialPort.list((err, ports) => {
-            const p = _.find(ports, p => _.includes([
+            const p = find(ports, p => includes([
                 'Microchip Technology, Inc.', // standard
                 'Microchip Technology Inc.' // macOS specific?
             ], p.manufacturer));
@@ -79,7 +79,7 @@ export class WaterRower extends events.EventEmitter {
             if (options.refreshRate !== 0) setInterval(() => this.requestDataPoints(this.datapoints), this.refreshRate);
         });
         this.port.on('data', d => {
-            let type = _.find(types, t => t.pattern.test(d));
+            let type = find(types, t => t.pattern.test(d));
             this.reads$.next({ time: Date.now(), type: (type ? type.type : 'other'), data: d })
         });
         this.port.on('closed', () => this.close);
@@ -96,11 +96,11 @@ export class WaterRower extends events.EventEmitter {
         this.datapoints$ = this.reads$
             .filter(d => d.type === 'datapoint')
             .map(d => {
-                let pattern = _.find(types, t => t.type == 'datapoint').pattern;
+                let pattern = find(types, t => t.type == 'datapoint').pattern;
                 let m = pattern.exec(d.data);
                 return {
                     time: new Date(d.time),
-                    name: _.find(datapoints, point => point.address == m[2]).name,
+                    name: find(datapoints, point => point.address == m[2]).name,
                     length: { 'S': 1, 'D': 2, 'T': 3 }[m[1]],
                     address: m[2],
                     value: m[3]
@@ -109,7 +109,7 @@ export class WaterRower extends events.EventEmitter {
 
         //emit the data event
         this.datapoints$.subscribe(d => {
-            let datapoint = _.find(datapoints, d2 => d2.address == d.address);
+            let datapoint = find(datapoints, d2 => d2.address == d.address);
             datapoint.value = parseInt(d.value, datapoint.radix);
             this.emit('data', datapoint);
         })
@@ -154,7 +154,7 @@ export class WaterRower extends events.EventEmitter {
     requestDataPoints(points?: string | string[]): void {
         let req = (name: string): void => {
             console.log('requesting ' + name);
-            let dataPoint = _.find(datapoints, d => d.name == name);
+            let dataPoint = find(datapoints, d => d.name == name);
             this.send(`IR${dataPoint.length}${dataPoint.address}`)
         }
 
@@ -175,7 +175,7 @@ export class WaterRower extends events.EventEmitter {
                     .filter(dp => points.some(p => p == dp.name)) //filter to the points that were passed in
                     .reduce((p, c) => { p[c.name] = c.value; return p; }, {}); //build up an array of the chosen points
             }
-            else if (typeof points === 'string') return _.find(datapoints, d => d.name == points).value;
+            else if (typeof points === 'string') return find(datapoints, d => d.name == points).value;
             else throw ('readDataPoints requires a string, an array of strings, or nothing at all');
         }
         else
@@ -217,12 +217,12 @@ export class WaterRower extends events.EventEmitter {
 
     /// set up new workout session on the WR with set distance
     defineDistanceWorkout(distance: number, units: Units = Units.Meters): void {
-        this.send(`WSI${units}${ayb.decToHex(distance)}`);
+        this.send(`WSI${units}${padStart(ayb.decToHex(distance), 4, '0').toUpperCase()}`);
     }
 
     /// set up new workout session on the WR with set duration
     defineDurationWorkout(seconds: number): void {
-        this.send(`WSU${ayb.decToHex(seconds)}`);
+        this.send(`WSU${padStart(ayb.decToHex(seconds), 4, '0').toUpperCase()}`);
     }
 
     /// change the display to meters, miles, kilometers, or strokes

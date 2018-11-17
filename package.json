@@ -1,6 +1,6 @@
 {
   "name": "waterrower",
-  "version": "0.8.4",
+  "version": "0.8.5",
   "description": "Talk to your WaterRower!",
   "main": "lib/index.js",
   "scripts": {
