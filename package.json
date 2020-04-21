@@ -36,7 +36,7 @@
     "moment": "^2",
     "rxjs": "^5",
     "typescript": "^3",
-    "serialport": "^7"
+    "serialport": "^8"
   },
   "devDependencies": {
     "mocha": "^5",
